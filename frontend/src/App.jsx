@@ -4,10 +4,10 @@ import { ChakraProvider } from '@chakra-ui/react';
 // Import các trang
 import UserPage from './UserPage';   // Trang dành cho khách
 import LoginPage from './LoginPage'; // Trang Đăng nhập
-import AdminPage from './AdminPage'; // Trang Quản lý Sân (Vendor)
+import AdminPage from './AdminPage'; // Trang Quản lý Sân 
 import MyTickets from './MyTickets'; // Trang Vé của tôi
 import SuperAdminPage from './SuperAdminPage'; // Trang Super Admin
-// import Navbar from './components/Navbar'; // header
+import ForgotPasswordPage from './ForgotPasswordPage';
 
 // --- GUARD 1: CHỈ CHO SUPER ADMIN ---
 const SuperAdminRoute = ({ children }) => {
@@ -60,7 +60,7 @@ function App() {
                         </VendorRoute>
                     } 
                 />
-                {/* Khu vực app */}
+                {/* Khu vực admin */}
                 <Route 
                     path="/super-admin" 
                     element={
@@ -69,7 +69,7 @@ function App() {
                         </SuperAdminRoute>
                     }
                 />
-
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 {/* Route bắt lỗi 404 -> Về trang chủ */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -79,3 +79,5 @@ function App() {
 }
 
 export default App;
+
+

@@ -6,6 +6,25 @@ import {
     useColorModeValue, Icon, Tooltip, SimpleGrid
 } from '@chakra-ui/react';
 import { FaTrashAlt, FaCalendarDay, FaClock, FaMapMarkerAlt, FaTicketAlt, FaTimesCircle, FaCheckCircle, FaHistory } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+
+// --- Styles ---
+const glassModalStyle = {
+    bg: "rgba(255, 255, 255, 0.85)",
+    backdropFilter: "blur(20px) saturate(180%)",
+    border: "1px solid rgba(255, 255, 255, 0.6)",
+    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)"
+};
+
+const ticketCardStyle = {
+    bg: "white",
+    borderRadius: "2xl",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+    border: "1px solid",
+    borderColor: "gray.100",
+    transition: "all 0.2s ease-in-out",
+    _hover: { transform: "translateY(-3px)", boxShadow: "lg", borderColor: "blue.200" }
+};
 
 const MyTickets = ({ isOpen, onClose }) => {
     const [tickets, setTickets] = useState([]);
@@ -13,11 +32,9 @@ const MyTickets = ({ isOpen, onClose }) => {
     const toast = useToast();
     
     // Theme colors
-    const bgModal = useColorModeValue('white', 'gray.800');
-    const bgCard = useColorModeValue('white', 'gray.700');
-    const borderColor = useColorModeValue('gray.200', 'gray.600');
-    const dateBoxBg = useColorModeValue('blue.50', 'blue.900');
-    const dateBoxColor = useColorModeValue('blue.600', 'blue.200');
+    const textColor = useColorModeValue('gray.700', 'white');
+    const subTextColor = useColorModeValue('gray.500', 'gray.400');
+    const dateBg = useColorModeValue('blue.50', 'whiteAlpha.200');
 
     const fetchTickets = () => { 
         const user = JSON.parse(localStorage.getItem('user')); 
@@ -59,33 +76,37 @@ const MyTickets = ({ isOpen, onClose }) => {
         }
     };
 
-    // Helper format ngày
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return {
             day: date.getDate(),
-            month: `Tháng ${date.getMonth() + 1}`,
+            month: `T${date.getMonth() + 1}`,
             full: date.toLocaleDateString('vi-VN')
         };
     };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered scrollBehavior="inside">
-            <ModalOverlay backdropFilter="blur(2px)" />
-            <ModalContent borderRadius="2xl" bg={bgModal}>
-                <ModalHeader borderBottomWidth="1px" borderColor={borderColor}>
+            <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(6px)" />
+            <ModalContent borderRadius="3xl" overflow="hidden" bg="transparent" boxShadow="2xl">
+                
+                {/* --- HEADER --- */}
+                <ModalHeader bg="white" borderBottom="1px solid" borderColor="gray.100" py={5}>
                     <HStack justify="space-between" pr={8}>
-                        <HStack>
-                            <Icon as={FaTicketAlt} color="blue.500" />
-                            <Text>Vé của tôi</Text>
-                            <Badge colorScheme="blue" borderRadius="full" px={2}>{tickets.length}</Badge>
+                        <HStack spacing={3}>
+                            <Flex w={10} h={10} bg="blue.50" borderRadius="full" align="center" justify="center">
+                                <Icon as={FaTicketAlt} color="blue.500" boxSize={5}/>
+                            </Flex>
+                            <Box>
+                                <Text fontSize="lg" fontWeight="bold" color={textColor}>Vé của tôi</Text>
+                                <Text fontSize="xs" color={subTextColor}>{tickets.length} vé đã đặt</Text>
+                            </Box>
                         </HStack>
                         {tickets.length > 0 && (
                             <Button 
-                                size="xs" 
-                                leftIcon={<FaHistory/>} 
-                                colorScheme="red" 
-                                variant="ghost" 
+                                size="xs" leftIcon={<FaHistory/>} 
+                                colorScheme="red" variant="ghost" 
+                                borderRadius="full"
                                 onClick={handleClearAll}
                             >
                                 Xóa lịch sử
@@ -93,111 +114,90 @@ const MyTickets = ({ isOpen, onClose }) => {
                         )}
                     </HStack>
                 </ModalHeader>
-                <ModalCloseButton />
+                <ModalCloseButton size="lg" top={4} right={4} borderRadius="full" />
                 
-                <ModalBody py={6} px={4} className="hide-scrollbar" bg={useColorModeValue('gray.50', 'gray.900')}>
+                {/* --- BODY --- */}
+                <ModalBody py={6} px={{base: 4, md: 6}} {...glassModalStyle} className="custom-scroll">
                     {loading ? (
-                        <Flex justify="center" py={10}><Spinner size="xl" color="blue.500" thickness="4px"/></Flex>
+                        <Flex justify="center" py={12}><Spinner size="xl" color="blue.500" thickness="3px"/></Flex>
                     ) : (
                         <VStack spacing={4}>
                             {tickets.length === 0 && (
-                                <Flex direction="column" align="center" justify="center" py={10} color="gray.400">
-                                    <Icon as={FaTicketAlt} boxSize={20} mb={4} opacity={0.3} />
-                                    <Text fontSize="lg" fontWeight="bold">Chưa có vé nào</Text>
-                                    <Text fontSize="sm">Hãy đặt sân ngay để trải nghiệm!</Text>
+                                <Flex direction="column" align="center" justify="center" py={12} opacity={0.6}>
+                                    <Icon as={FaTicketAlt} boxSize={16} mb={4} color="gray.300" />
+                                    <Text fontSize="lg" fontWeight="bold" color={subTextColor}>Chưa có vé nào</Text>
+                                    <Text fontSize="sm" color={subTextColor}>Hãy đặt sân ngay để trải nghiệm!</Text>
                                 </Flex>
                             )}
                             
                             {tickets.map(t => {
                                 const dateInfo = formatDate(t.booking_date);
                                 const isConfirmed = t.status === 'confirmed';
-                                const isCancelled = t.status === 'cancelled';
-
+                                
                                 return (
-                                    <Flex 
-                                        key={t.id} 
-                                        w="100%" 
-                                        bg={bgCard} 
-                                        borderRadius="xl" 
-                                        overflow="hidden" 
-                                        boxShadow="sm"
-                                        border="1px solid"
-                                        borderColor={isConfirmed ? 'green.200' : 'gray.200'}
-                                        transition="all 0.2s"
-                                        _hover={{ boxShadow: 'md', transform: 'translateY(-2px)' }}
-                                    >
-                                        {/* Cột Ngày Tháng (Bên trái) */}
+                                    <Flex key={t.id} w="100%" {...ticketCardStyle}>
+                                        {/* Cột Ngày (Left Stub) */}
                                         <Flex 
-                                            direction="column" 
-                                            align="center" 
-                                            justify="center" 
-                                            bg={isConfirmed ? dateBoxBg : 'gray.100'} 
-                                            color={isConfirmed ? dateBoxColor : 'gray.500'}
-                                            w="80px" 
+                                            direction="column" align="center" justify="center" 
+                                            w="90px" bg={isConfirmed ? "blue.500" : "gray.200"} 
+                                            color="white"
+                                            borderTopLeftRadius="2xl" borderBottomLeftRadius="2xl"
+                                            position="relative"
                                             p={2}
-                                            borderRight="1px dashed"
-                                            borderColor="gray.300"
                                         >
-                                            <Text fontSize="2xl" fontWeight="900" lineHeight="1">{dateInfo.day}</Text>
-                                            <Text fontSize="xs" fontWeight="bold" textTransform="uppercase">{dateInfo.month}</Text>
+                                            <Text fontSize="3xl" fontWeight="900" lineHeight="1">{dateInfo.day}</Text>
+                                            <Text fontSize="sm" fontWeight="bold" textTransform="uppercase" opacity={0.9}>{dateInfo.month}</Text>
+                                            
+                                            {/* Răng cưa trang trí (Dashed Line) */}
+                                            <Box position="absolute" right="-1px" top="0" bottom="0" borderRight="2px dashed white" />
+                                            {/* Hình tròn khuyết trên dưới */}
+                                            <Box position="absolute" right="-10px" top="-10px" w="20px" h="20px" bg="white" borderRadius="full" />
+                                            <Box position="absolute" right="-10px" bottom="-10px" w="20px" h="20px" bg="white" borderRadius="full" />
                                         </Flex>
 
-                                        {/* Nội dung chính (Bên phải) */}
-                                        <Box p={3} flex={1}>
-                                            <Flex justify="space-between" align="start" mb={2}>
-                                                <VStack align="start" spacing={1}>
-                                                    <Text fontWeight="bold" fontSize="md" noOfLines={1}>{t.court_name}</Text>
-                                                    <HStack fontSize="xs" color="gray.500">
-                                                        <Icon as={FaClock} />
-                                                        <Text>{t.booking_time}</Text>
-                                                        <Text>|</Text>
-                                                        <Icon as={FaCalendarDay} />
-                                                        <Text>{dateInfo.full}</Text>
-                                                    </HStack>
+                                        {/* Nội dung chính */}
+                                        <Box p={4} flex={1} pl={6}>
+                                            <Flex justify="space-between" align="start" mb={1}>
+                                                <VStack align="start" spacing={0}>
+                                                    <Text fontWeight="bold" fontSize="lg" color={textColor} noOfLines={1}>{t.court_name}</Text>
+                                                    <Badge 
+                                                        colorScheme={isConfirmed ? 'green' : 'red'} 
+                                                        variant="subtle" fontSize="xs" borderRadius="md" mt={1} px={2}
+                                                        display="flex" alignItems="center" width="fit-content"
+                                                    >
+                                                        <Icon as={isConfirmed ? FaCheckCircle : FaTimesCircle} mr={1} />
+                                                        {isConfirmed ? 'Đã xác nhận' : 'Đã hủy'}
+                                                    </Badge>
                                                 </VStack>
-                                                
-                                                <Badge 
-                                                    colorScheme={isConfirmed ? 'green' : 'red'} 
-                                                    variant="subtle" 
-                                                    px={2} py={1} 
-                                                    borderRadius="lg"
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    gap={1}
-                                                >
-                                                    <Icon as={isConfirmed ? FaCheckCircle : FaTimesCircle} />
-                                                    {isConfirmed ? 'Đã đặt' : 'Đã hủy'}
-                                                </Badge>
+
+                                                <VStack align="end" spacing={0}>
+                                                    <Text fontWeight="800" color={isConfirmed ? "green.500" : "gray.400"} fontSize="lg">
+                                                        {parseInt(t.price).toLocaleString()}đ
+                                                    </Text>
+                                                </VStack>
                                             </Flex>
 
-                                            <Divider my={2} />
+                                            <Divider my={3} borderStyle="dashed" />
 
                                             <Flex justify="space-between" align="center">
-                                                <Text fontWeight="800" color={isConfirmed ? "green.600" : "gray.400"} fontSize="md">
-                                                    {parseInt(t.price).toLocaleString()} đ
-                                                </Text>
-                                                
+                                                <HStack fontSize="sm" color={subTextColor} spacing={4}>
+                                                    <HStack><Icon as={FaClock} color="orange.400"/><Text fontWeight="medium">{t.booking_time}</Text></HStack>
+                                                    <HStack><Icon as={FaCalendarDay} color="blue.400"/><Text>{dateInfo.full}</Text></HStack>
+                                                </HStack>
+
                                                 <HStack>
                                                     {isConfirmed && (
-                                                        <Button 
-                                                            size="xs" 
-                                                            colorScheme="red" 
-                                                            variant="outline" 
-                                                            onClick={() => handleAction(t.id, 'cancel')}
-                                                        >
+                                                        <Button size="xs" colorScheme="orange" variant="outline" borderRadius="full" onClick={() => handleAction(t.id, 'cancel')}>
                                                             Hủy vé
                                                         </Button>
                                                     )}
-                                                    <Tooltip label="Xóa khỏi lịch sử">
-                                                        <IconButton 
-                                                            size="xs" 
-                                                            icon={<FaTrashAlt />} 
-                                                            variant="ghost"
-                                                            colorScheme="gray"
-                                                            onClick={() => handleAction(t.id, 'delete')} 
-                                                            aria-label="Xóa vé"
-                                                        />
-                                                    </Tooltip>
+                                                    <IconButton 
+                                                        icon={<FaTrashAlt />} size="xs" 
+                                                        variant="ghost" colorScheme="gray" 
+                                                        borderRadius="full"
+                                                        onClick={() => handleAction(t.id, 'delete')} 
+                                                        aria-label="Delete"
+                                                    />
                                                 </HStack>
                                             </Flex>
                                         </Box>
