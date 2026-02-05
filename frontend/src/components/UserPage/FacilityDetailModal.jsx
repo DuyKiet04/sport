@@ -14,7 +14,7 @@ import { SiZalo } from 'react-icons/si';
 import axios from 'axios';
 
 // 🔥 API Key thời tiết
-const OPEN_WEATHER_API_KEY = '9664ec0f743a300f9f9ca359e63b7f68'; 
+const OPEN_WEATHER_API_KEY = import.meta.env.VITE_OPEN_WEATHER_API_KEY; 
 
 const getImgUrl = (url) => {
     if (!url) return '';
