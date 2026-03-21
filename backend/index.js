@@ -55,12 +55,15 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads')); 
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT || '6543'),
   max: 1, 
   connectionTimeoutMillis: 15000, 
-  idleTimeoutMillis: 30000,
   ssl: {
-    rejectUnauthorized: false // Bắt buộc phải có
+    rejectUnauthorized: false // Bắt buộc phải có khi lên Vercel
   }
 });
 
