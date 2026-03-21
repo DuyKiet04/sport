@@ -10,7 +10,7 @@ const getImgUrl = (url) => {
     if (url.includes('via.placeholder.com') || url.includes('placehold.co')) return url;
     if (url.startsWith('http')) return url; 
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, ''); 
-    return `http://localhost:5000/${cleanPath}`; 
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`; 
 };
 
 // ==========================================

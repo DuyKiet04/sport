@@ -10,7 +10,7 @@ import { FaCalendarAlt, FaClock, FaMoneyBillWave, FaCheckCircle, FaExclamationCi
 const getImgUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:5000/${url.startsWith('/') ? url.substring(1) : url}`;
+    return `${import.meta.env.VITE_API_URL}/${url.startsWith('/') ? url.substring(1) : url}`;
 };
 
 const generateDynamicTimeSlots = (openTime, closeTime) => {
@@ -121,7 +121,7 @@ const BookingModal = ({ isOpen, onClose, court, facility }) => {
         if (!bookingDate || !startTime) return toast({ title: "Chưa chọn ngày giờ!", status: "warning" });
         setIsChecking(true); setAvailabilityMsg('');
         try {
-            const res = await axios.get(`http://localhost:5000/api/courts/${court.id}/check`, { 
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/courts/${court.id}/check`, { 
                 params: { date: bookingDate, start: startTime, end: endTime } 
             });
             if (res.data.available) setAvailabilityMsg('ok');
@@ -137,7 +137,7 @@ const BookingModal = ({ isOpen, onClose, court, facility }) => {
 
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:5000/api/bookings', {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings`, {
                 user_id: user.id,
                 court_id: court.id,
                 booking_date: bookingDate,

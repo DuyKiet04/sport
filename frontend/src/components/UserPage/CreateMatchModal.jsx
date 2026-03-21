@@ -107,10 +107,10 @@ const CreateMatchModal = ({ isOpen, onClose, facilities = [], onMatchCreated, ed
         setLoading(true);
         try {
             if (editMatch) {
-                await axios.put(`http://localhost:5000/api/matches/${editMatch.id}`, payload);
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/matches/${editMatch.id}`, payload);
                 toast({ title: 'Đã cập nhật kèo!', status: 'success', position: 'top' });
             } else {
-                await axios.post('http://localhost:5000/api/matches', payload);
+                await axios.post(import.meta.env.VITE_API_URL + '/api/matches', payload);
                 toast({ title: 'Tạo kèo thành công! 🏆', status: 'success', position: 'top' });
             }
             if(onMatchCreated) onMatchCreated();

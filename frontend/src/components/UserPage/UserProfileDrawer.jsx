@@ -91,7 +91,7 @@ const UserProfileDrawer = ({ isOpen, onClose, onAvatarUpdate }) => {
                 formData.append('avatar', selectedFile); 
             }
 
-            const res = await axios.put(`http://localhost:5000/api/users/${user.id}`, formData, {
+            const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             

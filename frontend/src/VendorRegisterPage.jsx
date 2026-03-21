@@ -71,9 +71,9 @@ export default function VendorRegisterPage() {
         const fetchCategories = async () => {
             try {
                 const [wardsRes, sportsRes, configRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/locations/wards'),
-                    axios.get('http://localhost:5000/api/sport-types'),
-                    axios.get('http://localhost:5000/api/config')
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/locations/wards`),
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/sport-types`),
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/config`)
                 ]);
                 setWards(wardsRes.data || []);
                 setSportTypes(sportsRes.data || []);
@@ -131,7 +131,7 @@ export default function VendorRegisterPage() {
         data.append('facility_address', streetAddress); 
 
         try { 
-            await axios.post('http://localhost:5000/api/register', data); 
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/register`, data); 
             toast({ title: 'Nộp hồ sơ thành công!', status: 'success' }); 
             window.open(`https://zalo.me/${ADMIN_ZALO}`, '_blank');
             navigate('/login');

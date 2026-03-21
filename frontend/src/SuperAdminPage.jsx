@@ -39,7 +39,7 @@ const getImgUrl = (url) => {
     if (url.includes('base64')) return url;
     if (url.startsWith('http')) return url;
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, '');
-    return `http://localhost:5000/${cleanPath}`;
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`;
 };
 
 const getPreviewTileUrl = (templateUrl) => {
@@ -204,7 +204,7 @@ const NotificationBell = ({ user }) => {
     const fetchNotifications = async () => {
         if (!user) return;
         try {
-            const res = await axios.get(`http://localhost:5000/api/notifications/${user.id}?limit=15`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications/${user.id}?limit=15`);
             setNotifications(res.data.notifications || []);
             setUnreadCount(res.data.unreadCount || 0);
         } catch (e) {}
@@ -219,7 +219,7 @@ const NotificationBell = ({ user }) => {
     const handleMarkAllRead = async () => {
         if (unreadCount === 0) return;
         try {
-            await axios.put(`http://localhost:5000/api/notifications/${user.id}/read`);
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/notifications/${user.id}/read`);
             setUnreadCount(0);
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
         } catch (e) {}
@@ -228,7 +228,7 @@ const NotificationBell = ({ user }) => {
     const handleDelete = async (e, id) => {
         e.stopPropagation();
         try {
-            await axios.delete(`http://localhost:5000/api/notifications/item/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/notifications/item/${id}`);
             setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (e) {}
     };
@@ -358,7 +358,7 @@ export default function SuperAdminPage() {
     useEffect(() => {
         const fetchReportedCount = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/admin/reviews/reported-count');
+                const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/reviews/reported-count');
                 setReportedCount(res.data.count);
             } catch (e) {}
         };
@@ -374,15 +374,15 @@ export default function SuperAdminPage() {
         try {
             setLoading(true);
             const [resSports, resUsers, resConfig, resAllCourts, resDashboard, resWards, resFacilities, resMapLayers, resWardsList] = await Promise.all([
-                axios.get('http://localhost:5000/api/sport-types'),
-                axios.get('http://localhost:5000/api/admin/users'), 
-                axios.get('http://localhost:5000/api/config'),
-                axios.get('http://localhost:5000/api/admin/all-courts'), 
-                axios.get('http://localhost:5000/api/superadmin/dashboard-stats').catch(() => ({ data: { summary: {users:0, vendors:0, courts:0, revenue:0}, pie_data: {users:0, vendors:0} } })),
-                axios.get('http://localhost:5000/api/superadmin/stats/courts-by-ward').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5000/api/admin/facilities').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5000/api/map/layers').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5000/api/locations/wards').catch(() => ({ data: [] }))
+                axios.get(import.meta.env.VITE_API_URL + '/api/sport-types'),
+                axios.get(import.meta.env.VITE_API_URL + '/api/admin/users'), 
+                axios.get(import.meta.env.VITE_API_URL + '/api/config'),
+                axios.get(import.meta.env.VITE_API_URL + '/api/admin/all-courts'), 
+                axios.get(import.meta.env.VITE_API_URL + '/api/superadmin/dashboard-stats').catch(() => ({ data: { summary: {users:0, vendors:0, courts:0, revenue:0}, pie_data: {users:0, vendors:0} } })),
+                axios.get(import.meta.env.VITE_API_URL + '/api/superadmin/stats/courts-by-ward').catch(() => ({ data: [] })),
+                axios.get(import.meta.env.VITE_API_URL + '/api/admin/facilities').catch(() => ({ data: [] })),
+                axios.get(import.meta.env.VITE_API_URL + '/api/map/layers').catch(() => ({ data: [] })),
+                axios.get(import.meta.env.VITE_API_URL + '/api/locations/wards').catch(() => ({ data: [] }))
             ]);
 
             setSportTypes(resSports.data || []);
@@ -414,7 +414,7 @@ export default function SuperAdminPage() {
 
         const fetchShape = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/courts/by-ward/${currentFilter}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/courts/by-ward/${currentFilter}`);
                 if (res.data && res.data.shape) {
                     let shapeObj = res.data.shape;
                     if (typeof shapeObj === 'string') shapeObj = JSON.parse(shapeObj);
@@ -548,33 +548,33 @@ export default function SuperAdminPage() {
 
 
     const handleLogout = () => { if(window.confirm("Đăng xuất?")) { localStorage.clear(); navigate('/login'); } };
-    const handleUserStatus = async (userId, newStatus) => { try { await axios.put(`http://localhost:5000/api/admin/users/${userId}/status`, { status: newStatus }); toast({ title: 'Cập nhật thành công', status: 'success' }); fetchData(); } catch (e) {} };
-    const handleDeleteUser = async (userId) => { if(window.confirm("CẢNH BÁO: Xóa vĩnh viễn user này?")) { try { await axios.delete(`http://localhost:5000/api/admin/users/${userId}`); toast({ title: 'Đã xóa user', status: 'success' }); fetchData(); } catch (e) {} } };
+    const handleUserStatus = async (userId, newStatus) => { try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}/status`, { status: newStatus }); toast({ title: 'Cập nhật thành công', status: 'success' }); fetchData(); } catch (e) {} };
+    const handleDeleteUser = async (userId) => { if(window.confirm("CẢNH BÁO: Xóa vĩnh viễn user này?")) { try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}`); toast({ title: 'Đã xóa user', status: 'success' }); fetchData(); } catch (e) {} } };
     const handleBulkUserStatus = async (status) => {
         if (selectedUserIds.length === 0) return;
         if (!window.confirm(`Chuyển ${selectedUserIds.length} user sang trạng thái ${status === 'active' ? 'Hoạt động' : 'Bị Khóa'}?`)) return;
-        try { await axios.put('http://localhost:5000/api/admin/users/bulk-status', { ids: selectedUserIds, status }); toast({ title: "Đã cập nhật hàng loạt!", status: "success" }); fetchData(); setSelectedUserIds([]); } catch (e) {}
+        try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/bulk-status`, { ids: selectedUserIds, status }); toast({ title: "Đã cập nhật hàng loạt!", status: "success" }); fetchData(); setSelectedUserIds([]); } catch (e) {}
     };
     const handleBulkUserDelete = async () => {
         if (selectedUserIds.length === 0) return;
         if (!window.confirm(`⚠️ CẢNH BÁO MẠNH: Bạn đang XÓA VĨNH VIỄN ${selectedUserIds.length} users. Chắc chắn chưa?`)) return;
-        try { await axios.post('http://localhost:5000/api/admin/users/bulk-delete', { ids: selectedUserIds }); toast({ title: "Đã xóa hàng loạt thành công!", status: "success" }); fetchData(); setSelectedUserIds([]); } catch (e) {}
+        try { await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/users/bulk-delete`, { ids: selectedUserIds }); toast({ title: "Đã xóa hàng loạt thành công!", status: "success" }); fetchData(); setSelectedUserIds([]); } catch (e) {}
     };
     const handleViewDetail = (user) => { setSelectedUser(user); onUserDetailOpen(); };
-    const handleApproveUser = async (userId) => { if(!window.confirm("Duyệt tài khoản này?")) return; try { await axios.put(`http://localhost:5000/api/admin/users/${userId}/status`, { status: 'active' }); toast({ title: 'Đã duyệt!', status: 'success' }); fetchData(); onUserDetailClose(); } catch (e) {} };
-    const handleRejectUser = async (userId) => { if(!window.confirm("Từ chối tài khoản này?")) return; try { await axios.put(`http://localhost:5000/api/admin/users/${userId}/status`, { status: 'rejected' }); toast({ title: 'Đã từ chối', status: 'warning' }); fetchData(); onUserDetailClose(); } catch (e) {} };
+    const handleApproveUser = async (userId) => { if(!window.confirm("Duyệt tài khoản này?")) return; try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}/status`, { status: 'active' }); toast({ title: 'Đã duyệt!', status: 'success' }); fetchData(); onUserDetailClose(); } catch (e) {} };
+    const handleRejectUser = async (userId) => { if(!window.confirm("Từ chối tài khoản này?")) return; try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}/status`, { status: 'rejected' }); toast({ title: 'Đã từ chối', status: 'warning' }); fetchData(); onUserDetailClose(); } catch (e) {} };
 
-    const handleFacilityStatus = async (facId, newStatus) => { try { await axios.put(`http://localhost:5000/api/admin/facilities/${facId}/status`, { status: newStatus }); toast({ title: `Đã cập nhật: ${newStatus}`, status: 'success' }); fetchData(); } catch (e) {} };
-    const handleDeleteFacility = async (facId) => { if (window.confirm("CẢNH BÁO: Xóa VĨNH VIỄN cơ sở này và toàn bộ sân con?")) { try { await axios.delete(`http://localhost:5000/api/facilities/${facId}`); toast({ title: 'Đã xóa!', status: 'success' }); fetchData(); } catch (e) {} } };
+    const handleFacilityStatus = async (facId, newStatus) => { try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/facilities/${facId}/status`, { status: newStatus }); toast({ title: `Đã cập nhật: ${newStatus}`, status: 'success' }); fetchData(); } catch (e) {} };
+    const handleDeleteFacility = async (facId) => { if (window.confirm("CẢNH BÁO: Xóa VĨNH VIỄN cơ sở này và toàn bộ sân con?")) { try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/facilities/${facId}`); toast({ title: 'Đã xóa!', status: 'success' }); fetchData(); } catch (e) {} } };
     const handleBulkFacAction = async (status) => { 
         if (selectedFacIds.length === 0) return; 
         if (!window.confirm(`Chuyển ${selectedFacIds.length} cơ sở sang trạng thái ${status}?`)) return; 
-        try { await axios.put('http://localhost:5000/api/admin/facilities/bulk-status', { ids: selectedFacIds, status: status }); toast({ title: "Thao tác thành công!", status: "success" }); fetchData(); setSelectedFacIds([]); } catch (error) {} 
+        try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/facilities/bulk-status`, { ids: selectedFacIds, status: status }); toast({ title: "Thao tác thành công!", status: "success" }); fetchData(); setSelectedFacIds([]); } catch (error) {} 
     };
     const handleBulkFacDelete = async () => { 
         if (selectedFacIds.length === 0) return; 
         if (!window.confirm(`🧨 CẢNH BÁO NGUY HIỂM: XÓA VĨNH VIỄN ${selectedFacIds.length} cơ sở?`)) return; 
-        try { await axios.delete('http://localhost:5000/api/admin/facilities/bulk-delete', { data: { ids: selectedFacIds } }); toast({ title: "Đã xóa!", status: "success" }); fetchData(); setSelectedFacIds([]); } catch (error) {} 
+        try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/facilities/bulk-delete`, { data: { ids: selectedFacIds } }); toast({ title: "Đã xóa!", status: "success" }); fetchData(); setSelectedFacIds([]); } catch (error) {} 
     };
 
     const openCreateFacModal = () => { 
@@ -587,27 +587,27 @@ export default function SuperAdminPage() {
         setFacPanelState('edit'); 
     };
 
-    const handleCourtStatus = async (courtId, newStatus) => { try { await axios.put(`http://localhost:5000/api/admin/courts/${courtId}/status`, { status: newStatus }); setCourts(prev => prev.map(c => c.id === courtId ? {...c, status: newStatus} : c)); toast({ title: `Đã chuyển sang: ${newStatus}`, status: 'success' }); } catch (e) {} };
-    const handleBulkAction = async (status) => { if (selectedIds.length === 0) return; if (!window.confirm(`Chuyển ${selectedIds.length} sân sang trạng thái ${status}?`)) return; try { await axios.put('http://localhost:5000/api/admin/courts/bulk-status', { ids: selectedIds, status: status }); toast({ title: "Thao tác thành công!", status: "success" }); fetchData(); setSelectedIds([]); } catch (error) {} };
+    const handleCourtStatus = async (courtId, newStatus) => { try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/courts/${courtId}/status`, { status: newStatus }); setCourts(prev => prev.map(c => c.id === courtId ? {...c, status: newStatus} : c)); toast({ title: `Đã chuyển sang: ${newStatus}`, status: 'success' }); } catch (e) {} };
+    const handleBulkAction = async (status) => { if (selectedIds.length === 0) return; if (!window.confirm(`Chuyển ${selectedIds.length} sân sang trạng thái ${status}?`)) return; try { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/courts/bulk-status`, { ids: selectedIds, status: status }); toast({ title: "Thao tác thành công!", status: "success" }); fetchData(); setSelectedIds([]); } catch (error) {} };
 
     const handleAddLayer = async () => {
         if (!newLayer.name || !newLayer.url) return toast({ title: "Thiếu thông tin!", status: "warning" });
         const layerData = new FormData(); 
         layerData.append('name', newLayer.name); layerData.append('url', newLayer.url); layerData.append('attribution', newLayer.attribution || '&copy; OpenStreetMap');
         if (layerFile) layerData.append('thumbnail', layerFile); else layerData.append('thumbnail_url', getPreviewTileUrl(newLayer.url));
-        try { await axios.post('http://localhost:5000/api/admin/map/layers', layerData, { headers: { 'Content-Type': 'multipart/form-data' } }); toast({ title: 'Đã thêm lớp bản đồ!', status: 'success' }); setNewLayer({ name: '', url: '', attribution: '' }); setLayerFile(null); fetchData(); } catch (e) {}
+        try { await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/map/layers`, layerData, { headers: { 'Content-Type': 'multipart/form-data' } }); toast({ title: 'Đã thêm lớp bản đồ!', status: 'success' }); setNewLayer({ name: '', url: '', attribution: '' }); setLayerFile(null); fetchData(); } catch (e) {}
     };
     
-    const handleToggleLayer = async (id) => { await axios.put(`http://localhost:5000/api/admin/map/layers/${id}/toggle`); fetchData(); };
-    const handleDeleteLayer = async (id) => { if(window.confirm('Xóa lớp này?')) { await axios.delete(`http://localhost:5000/api/admin/map/layers/${id}`); fetchData(); } };
-    const handleUploadMarker = async (e) => { const file = e.target.files[0]; if(!file) return; const formData = new FormData(); formData.append('icon', file); try { await axios.post('http://localhost:5000/api/admin/map/marker-icon', formData); toast({ title: 'Đã đổi icon marker!', status: 'success' }); fetchData(); } catch (e) {} };
+    const handleToggleLayer = async (id) => { await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/map/layers/${id}/toggle`); fetchData(); };
+    const handleDeleteLayer = async (id) => { if(window.confirm('Xóa lớp này?')) { await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/map/layers/${id}`); fetchData(); } };
+    const handleUploadMarker = async (e) => { const file = e.target.files[0]; if(!file) return; const formData = new FormData(); formData.append('icon', file); try { await axios.post(import.meta.env.VITE_API_URL + '/api/admin/map/marker-icon', formData); toast({ title: 'Đã đổi icon marker!', status: 'success' }); fetchData(); } catch (e) {} };
 
-    const handleSaveConfig = async () => { const data = new FormData(); data.append('website_name', config.website_name); data.append('admin_zalo', config.admin_zalo || ''); if (logoFile) data.append('logo', logoFile); try { await axios.post('http://localhost:5000/api/config', data); toast({ title: 'Đã lưu!', status: 'success' }); fetchData(); } catch (e) {} };
+    const handleSaveConfig = async () => { const data = new FormData(); data.append('website_name', config.website_name); data.append('admin_zalo', config.admin_zalo || ''); if (logoFile) data.append('logo', logoFile); try { await axios.post(`${import.meta.env.VITE_API_URL}/api/config`, data); toast({ title: 'Đã lưu!', status: 'success' }); fetchData(); } catch (e) {} };
     const handleLogoChange = (e) => { const f = e.target.files[0]; if (f) { setLogoFile(f); setPreviewLogo(URL.createObjectURL(f)); } };
     const handleFileChange = (e) => { const f = e.target.files[0]; if (f) { setFile(f); setPreviewUrl(URL.createObjectURL(f)); } };
     const handleLinkChange = (e) => { setFormData({ ...formData, icon_url_direct: e.target.value }); setPreviewUrl(e.target.value); };
-    const handleSubmitSport = async (e) => { e.preventDefault(); const data = new FormData(); data.append('name', formData.name); data.append('code', formData.code); if (uploadMode === 'file') { if (file) data.append('icon', file); } else { if (formData.icon_url_direct) data.append('icon_url_direct', formData.icon_url_direct); } try { await axios.post('http://localhost:5000/api/sport-types', data); toast({ title: 'Thêm thành công!', status: 'success' }); setFormData({ name: '', code: '', icon_url_direct: '' }); setFile(null); setPreviewUrl(''); fetchData(); } catch {} };
-    const handleDeleteSport = async (id) => { if (window.confirm("Xóa?")) { await axios.delete(`http://localhost:5000/api/sport-types/${id}`); fetchData(); } };
+    const handleSubmitSport = async (e) => { e.preventDefault(); const data = new FormData(); data.append('name', formData.name); data.append('code', formData.code); if (uploadMode === 'file') { if (file) data.append('icon', file); } else { if (formData.icon_url_direct) data.append('icon_url_direct', formData.icon_url_direct); } try { await axios.post(import.meta.env.VITE_API_URL + '/api/sport-types', data); toast({ title: 'Thêm thành công!', status: 'success' }); setFormData({ name: '', code: '', icon_url_direct: '' }); setFile(null); setPreviewUrl(''); fetchData(); } catch {} };
+    const handleDeleteSport = async (id) => { if (window.confirm("Xóa?")) { await axios.delete(`${import.meta.env.VITE_API_URL}/api/sport-types/${id}`); fetchData(); } };
 
     const pieData = { labels: ['Khách Hàng', 'Chủ Sân'], datasets: [{ data: [stats.pie_data?.users || 0, stats.pie_data?.vendors || 0], backgroundColor: ['#3182CE', '#805AD5'], borderWidth: 0 }] };
     const wardChartData = { labels: wardStats.map(w => w.ward_name), datasets: [{ label: 'Số lượng sân', data: wardStats.map(w => w.total_courts), backgroundColor: '#38A169', borderRadius: 8 }] };
@@ -1557,8 +1557,8 @@ const FacilityFormPanel = ({ onClose, onRefresh, sportTypes, editingFac }) => {
         for (let i = 0; i < facFiles.length; i++) formData.append('facility_images', facFiles[i]);
 
         try {
-            if (isEditing) await axios.put(`http://localhost:5000/api/admin/facilities/${editingFac.id}`, formData);
-            else await axios.post('http://localhost:5000/api/admin/facilities', formData);
+            if (isEditing) await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/facilities/${editingFac.id}`, formData);
+            else await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/facilities`, formData);
             toast({ title: 'Thành công!', status: 'success' }); onRefresh(); onClose();
         } catch (e) { toast({ title: 'Lỗi', status: 'error' }); }
     };

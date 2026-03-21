@@ -7,7 +7,7 @@ import { FaHeart, FaMapMarkerAlt, FaTrashAlt, FaChevronRight } from 'react-icons
 import axios from 'axios';
 
 const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-const getImgUrl = (url) => url ? (url.startsWith('http') ? url : `http://localhost:5000/${url.replace(/^\/+/, '')}`) : 'https://placehold.co/100';
+const getImgUrl = (url) => url ? (url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL}/${url.replace(/^\/+/, '')}`) : 'https://placehold.co/100';
 
 const FavoriteFacilitiesModal = ({ isOpen, onClose, onSelectFacility }) => {
     const [favorites, setFavorites] = useState([]);
@@ -26,7 +26,7 @@ const FavoriteFacilitiesModal = ({ isOpen, onClose, onSelectFacility }) => {
         if (!user) return;
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/user/favorite-facilities/${user.id}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/favorite-facilities/${user.id}`);
             setFavorites(res.data);
         } catch (e) { console.error(e); } finally { setLoading(false); }
     };
@@ -35,7 +35,7 @@ const FavoriteFacilitiesModal = ({ isOpen, onClose, onSelectFacility }) => {
 
     const handleRemove = async (facId) => {
         try {
-            await axios.post('http://localhost:5000/api/favorites', { user_id: user.id, facility_id: facId });
+            await axios.post(import.meta.env.VITE_API_URL + '/api/favorites', { user_id: user.id, facility_id: facId });
             setFavorites(prev => prev.filter(f => f.id !== facId));
         } catch (e) { console.error(e); }
     };

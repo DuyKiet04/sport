@@ -15,7 +15,7 @@ const getImgUrl = (url) => {
     if (url.includes('base64')) return url;
     if (url.startsWith('http')) return url;
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, '');
-    return `http://localhost:5000/${cleanPath}`;
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`;
 };
 
 const parseArray = (data) => {
@@ -69,8 +69,8 @@ export default function ReviewManagementTab({ vendorId }) {
     const fetchReviews = async () => {
         try {
             const url = isSuperAdmin 
-                ? 'http://localhost:5000/api/admin/reviews' 
-                : `http://localhost:5000/api/vendor/reviews?vendor_id=${vendorId}`;
+                ? `${import.meta.env.VITE_API_URL}/api/admin/reviews` 
+                : `${import.meta.env.VITE_API_URL}/api/vendor/reviews?vendor_id=${vendorId}`;
             const res = await axios.get(url);
             const data = res.data.reviews || res.data || [];
             setReviews(Array.isArray(data) ? data : []);
@@ -111,7 +111,7 @@ export default function ReviewManagementTab({ vendorId }) {
     const handleBulkStatus = async (status) => {
         if (selectedIds.length === 0) return;
         try {
-            await axios.put('http://localhost:5000/api/admin/reviews/bulk-status', { ids: selectedIds, status });
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/reviews/bulk-status`, { ids: selectedIds, status });
             toast({ title: `Đã ${status === 'hidden' ? 'ẨN' : 'HIỆN'} ${selectedIds.length} đánh giá!`, status: "success" });
             fetchReviews(); setSelectedIds([]);
         } catch (e) { toast({ title: "Lỗi thao tác", status: "error" }); }
@@ -121,7 +121,7 @@ export default function ReviewManagementTab({ vendorId }) {
         if (selectedIds.length === 0) return;
         if (!window.confirm(`XÓA VĨNH VIỄN ${selectedIds.length} đánh giá này?`)) return;
         try {
-            await axios.post('http://localhost:5000/api/admin/reviews/bulk-delete', { ids: selectedIds });
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/reviews/bulk-delete`, { ids: selectedIds });
             toast({ title: `Đã XÓA ${selectedIds.length} đánh giá!`, status: "success" });
             fetchReviews(); setSelectedIds([]);
         } catch (e) { toast({ title: "Lỗi thao tác", status: "error" }); }
@@ -131,8 +131,8 @@ export default function ReviewManagementTab({ vendorId }) {
         if (selectedIds.length === 0) return;
         if (!window.confirm(`CẢNH BÁO: Khóa toàn bộ User của ${selectedIds.length} đánh giá này?`)) return;
         try {
-            await axios.put('http://localhost:5000/api/admin/users/bulk-ban-from-reviews', { reviewIds: selectedIds });
-            await axios.put('http://localhost:5000/api/admin/reviews/bulk-status', { ids: selectedIds, status: 'hidden' });
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/bulk-ban-from-reviews`, { reviewIds: selectedIds });
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/reviews/bulk-status`, { ids: selectedIds, status: 'hidden' });
             toast({ title: `Đã khóa User và ẩn đánh giá!`, status: "success" });
             fetchReviews(); setSelectedIds([]);
         } catch (e) { toast({ title: "Lỗi thao tác", status: "error" }); }
@@ -141,7 +141,7 @@ export default function ReviewManagementTab({ vendorId }) {
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === 'active' ? 'hidden' : 'active';
         try {
-            await axios.put(`http://localhost:5000/api/admin/reviews/${id}/status`, { status: newStatus });
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/reviews/${id}/status`, { status: newStatus });
             toast({ title: newStatus === 'hidden' ? "Đã ẩn đánh giá" : "Đã khôi phục đánh giá", status: "success" });
             fetchReviews();
         } catch (e) { toast({ title: "Lỗi cập nhật", status: "error" }); }
@@ -150,7 +150,7 @@ export default function ReviewManagementTab({ vendorId }) {
     const handleDelete = async (id) => {
         if (!window.confirm("Xóa vĩnh viễn đánh giá này?")) return;
         try {
-            await axios.delete(`http://localhost:5000/api/admin/reviews/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/reviews/${id}`);
             toast({ title: "Đã xóa đánh giá", status: "success" }); fetchReviews();
         } catch (e) { toast({ title: "Lỗi xóa", status: "error" }); }
     };
@@ -158,7 +158,7 @@ export default function ReviewManagementTab({ vendorId }) {
     const handleBanUser = async (userId, userName) => {
         if (!window.confirm(`Khóa tài khoản của người dùng: ${userName}?`)) return;
         try {
-            await axios.put(`http://localhost:5000/api/admin/users/${userId}/status`, { status: 'blocked' });
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}/status`, { status: 'blocked' });
             toast({ title: `Đã khóa User ${userName}`, status: "success" });
         } catch (e) { toast({ title: "Lỗi khóa User", status: "error" }); }
     };
@@ -166,7 +166,7 @@ export default function ReviewManagementTab({ vendorId }) {
     const handleDismissReport = async (id) => {
         if (!window.confirm("Bỏ qua báo cáo này (Đánh giá không vi phạm)?")) return;
         try {
-            await axios.put(`http://localhost:5000/api/admin/reviews/${id}/dismiss-report`);
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/reviews/${id}/dismiss-report`);
             toast({ title: "Đã bỏ qua báo cáo", status: "success" }); fetchReviews();
         } catch (e) { toast({ title: "Lỗi xử lý", status: "error" }); }
     };

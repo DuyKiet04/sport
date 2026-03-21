@@ -152,7 +152,7 @@ const SportConfigForm = ({ facility, sportTypes, onSave, initialData, onDeleteSp
         setUploading(true); const fd = new FormData();
         for (let i = 0; i < files.length; i++) fd.append('images', files[i]);
         try {
-            const res = await axios.post('http://localhost:5000/api/upload-multiple', fd);
+            const res = await axios.post(import.meta.env.VITE_API_URL + '/api/upload-multiple', fd);
             const key = type === 'normal' ? 'images_normal' : 'images_vip';
             setSportData(prev => ({ ...prev, [key]: [...prev[key], ...res.data.urls] }));
             toast({ title: "Đã thêm ảnh!", status: "success" });
@@ -171,8 +171,8 @@ const SportConfigForm = ({ facility, sportTypes, onSave, initialData, onDeleteSp
         try {
             const total = parseInt(sportData.normal_count) + parseInt(sportData.vip_count);
             const payload = { ...sportData, total_courts: total, vip_count: parseInt(sportData.vip_count) };
-            if (isEditMode) await axios.put(`http://localhost:5000/api/facilities/${facility.id}/sports/${sportData.sport_type}`, payload);
-            else await axios.post(`http://localhost:5000/api/facilities/${facility.id}/sports`, payload);
+            if (isEditMode) await axios.put(`${import.meta.env.VITE_API_URL}/api/facilities/${facility.id}/sports/${sportData.sport_type}`, payload);
+            else await axios.post(`${import.meta.env.VITE_API_URL}/api/facilities/${facility.id}/sports`, payload);
             toast({ title: "Thành công!", status: "success" });
             onSave(); onCancel();
         } catch (e) { toast({ title: "Lỗi", description: e.response?.data?.error, status: "error" }); } 
@@ -308,13 +308,13 @@ const FacilityTab = ({ facilities, sportTypes, user, fetchData, isMobile, search
     useEffect(() => {
         const fetchBaseData = async () => {
             try {
-                const resLayer = await axios.get('http://localhost:5000/api/map/layers');
+                const resLayer = await axios.get(import.meta.env.VITE_API_URL + '/api/map/layers');
                 setMapLayers(resLayer.data);
                 const aLayer = resLayer.data.find(layer => layer.active === true) || resLayer.data[0];
                 if (aLayer) setActiveMapLayer({ url: aLayer.url, attribution: aLayer.attribution || '', thumbnail: getLayerThumb(aLayer) });
 
                 if (user?.approved_ward_id) {
-                    const resWard = await axios.get(`http://localhost:5000/api/courts/by-ward/${user.approved_ward_id}`);
+                    const resWard = await axios.get(`${import.meta.env.VITE_API_URL}/api/courts/by-ward/${user.approved_ward_id}`);
                     if (resWard.data?.shape) setWardShape(typeof resWard.data.shape === 'string' ? JSON.parse(resWard.data.shape) : resWard.data.shape);
                 }
             } catch (error) { console.error(error); }
@@ -352,11 +352,11 @@ const FacilityTab = ({ facilities, sportTypes, user, fetchData, isMobile, search
             };
 
             if (isEditing) {
-                await axios.put(`http://localhost:5000/api/facilities/${formData.id}`, payload);
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/facilities/${formData.id}`, payload);
                 toast({ title: 'Cập nhật cơ sở ngon lành!', status: 'success' });
                 setRightPanelState(null);
             } else {
-                const res = await axios.post('http://localhost:5000/api/facilities', payload);
+                const res = await axios.post(import.meta.env.VITE_API_URL + '/api/facilities', payload);
                 setSelectedFacility({ ...payload, id: res.data.id });
                 toast({ title: 'Tạo cơ sở thành công!', status: 'success' });
                 setRightPanelState('sport'); 
@@ -379,7 +379,7 @@ const FacilityTab = ({ facilities, sportTypes, user, fetchData, isMobile, search
     const openEditSport = async (f, s) => { 
         setSelectedFacility(f);
         try {
-            const res = await axios.get(`http://localhost:5000/api/facilities/${f.id}/sports/${encodeURIComponent(s.sport_type)}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/facilities/${f.id}/sports/${encodeURIComponent(s.sport_type)}`);
             setEditingSportData(res.data); setRightPanelState('sport');       
         } catch (e) { toast({ title: "Lỗi", status: "error" }); }
     };
@@ -387,20 +387,20 @@ const FacilityTab = ({ facilities, sportTypes, user, fetchData, isMobile, search
     const handleDeleteSport = async () => {
         if(!window.confirm(`Xóa toàn bộ sân của môn ${editingSportData.sport_type}?`)) return;
         try {
-            await axios.delete(`http://localhost:5000/api/facilities/${selectedFacility.id}/sports/${encodeURIComponent(editingSportData.sport_type)}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/facilities/${selectedFacility.id}/sports/${encodeURIComponent(editingSportData.sport_type)}`);
             toast({ title: "Đã xóa!", status: "success" }); setRightPanelState(null); fetchData(); 
         } catch (error) { toast({ title: "Lỗi", status: "error" }); }
     };
 
     const handleImageUpload = async (e) => { 
         const file = e.target.files[0]; if (!file) return; setUploading(true); const fd = new FormData(); fd.append('image', file); 
-        try { const res = await axios.post('http://localhost:5000/api/upload', fd); setFormData(prev => ({ ...prev, image_url: res.data.url })); } 
+        try { const res = await axios.post(import.meta.env.VITE_API_URL + '/api/upload', fd); setFormData(prev => ({ ...prev, image_url: res.data.url })); } 
         catch { toast({ title: 'Lỗi', status: 'error' }); } finally { setUploading(false); } 
     };
 
     const handleDelete = async (id) => { 
         if(window.confirm("Xóa?")) { 
-            try { await axios.delete(`http://localhost:5000/api/facilities/${id}`); toast({ title: "Đã xóa", status: "success" }); fetchData(); } 
+            try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/facilities/${id}`); toast({ title: "Đã xóa", status: "success" }); fetchData(); } 
             catch { toast({ title: "Lỗi", status: "error" }); } 
         } 
     };

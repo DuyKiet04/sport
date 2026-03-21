@@ -38,7 +38,7 @@ const getImgUrl = (url) => {
     if (url.includes('via.placeholder.com') || url.includes('placehold.co')) return url;
     if (url.startsWith('http')) return url; 
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, ''); 
-    return `http://localhost:5000/${cleanPath}`; 
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`; 
 };
 
 const getPreviewTileUrl = (templateUrl) => {
@@ -224,17 +224,17 @@ export default function UserPage() {
         setLoading(true);
         try {
             const localUser = JSON.parse(localStorage.getItem('user'));
-            const facSearchUrl = `http://localhost:5000/api/user/facilities-search${localUser ? '?user_id=' + localUser.id : ''}`;
+            const facSearchUrl = `${import.meta.env.VITE_API_URL}/api/user/facilities-search${localUser ? '?user_id=' + localUser.id : ''}`;
             
             const [facRes, typesRes, matchRes, wardRes, configRes, layersRes, top5Res, heatRes] = await Promise.all([
                 axios.get(facSearchUrl),
-                axios.get('http://localhost:5000/api/sport-types'),
-                axios.get('http://localhost:5000/api/matches'),
-                axios.get('http://localhost:5000/api/locations/wards'),
-                axios.get('http://localhost:5000/api/config'),
-                axios.get('http://localhost:5000/api/map/layers').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5000/api/facilities/top-suggestions').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5000/api/map/real-heatmap').catch(() => ({ data: [] }))
+                axios.get(`${import.meta.env.VITE_API_URL}/api/sport-types`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/matches`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/locations/wards`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/config`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/map/layers`).catch(() => ({ data: [] })),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/facilities/top-suggestions`).catch(() => ({ data: [] })),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/map/real-heatmap`).catch(() => ({ data: [] }))
             ]);
             
             setAllFacilities(facRes.data || []);
@@ -263,12 +263,12 @@ export default function UserPage() {
     const handleMatchCreated = () => { loadData(); setShowMatches(true); };
     const handleAvatarUpdate = (newUrl) => { setCurrentUser(prev => ({ ...prev, avatar: newUrl })); loadData(); };
     const handleViewProfile = (user) => { setViewingUser(user); onPublicProfileOpen(); };
-    const handleDeleteMatch = async (matchId) => { if (!window.confirm("Xóa kèo này?")) return; try { await axios.delete(`http://localhost:5000/api/matches/${matchId}`, { data: { user_id: currentUser.id } }); toast({ title: 'Đã xóa kèo!', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
-    const handleKickUser = async (matchId, userIdToKick) => { if (!window.confirm("Đuổi người này?")) return; try { await axios.delete(`http://localhost:5000/api/matches/${matchId}/kick/${userIdToKick}`, { data: { host_id: currentUser.id } }); toast({ title: 'Đã đuổi!', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
-    const handleLockMatch = async (matchId, currentStatus) => { const newStatus = currentStatus === 'locked' ? 'open' : 'locked'; try { await axios.put(`http://localhost:5000/api/matches/${matchId}/lock`, { user_id: currentUser.id, status: newStatus }); toast({ title: newStatus === 'locked' ? 'Đã khóa kèo' : 'Đã mở kèo', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
-    const handleJoinMatch = async (matchId) => { const user = JSON.parse(localStorage.getItem('user')); if (!user) { if(window.confirm('Cần đăng nhập. Đi tới đăng nhập?')) navigate('/login'); return; } try { await axios.post('http://localhost:5000/api/matches/join', { match_id: matchId, user_id: user.id }); toast({ title: 'Tham gia thành công!', status: 'success' }); loadData(); } catch (error) { toast({ title: 'Lỗi', description: error.response?.data?.message, status: 'error' }); } };
-    const handleSelectWard = async (wardId) => { setSelectedWard(wardId); setSearchRadius(''); if(!wardId) { setWardShape(null); setWardBounds(null); loadData(); return; } try { const res = await axios.get(`http://localhost:5000/api/courts/by-ward/${wardId}`); setAllFacilities(res.data.courts || []); setWardShape(res.data.shape); setWardBounds(res.data.bounds); toast({ title: `Đã lọc: ${res.data.courts.length} địa điểm`, status: 'success' }); } catch (e) { toast({ title: "Lỗi", status: 'error' }); } };
-    const handleFindNearby = async () => { if(!userLoc) return toast({ title: "Vui lòng bật GPS!", status: 'warning' }); setSelectedWard(''); setWardShape(null); setWardBounds(null); try { const res = await axios.get(`http://localhost:5000/api/courts/nearby`, { params: { lat: userLoc[0], lng: userLoc[1], distance: searchRadius * 1000 } }); const mapped = res.data.map(c => ({ ...c, lat: c.geometry?.coordinates[1] || c.lat, lng: c.geometry?.coordinates[0] || c.lng, sports: c.sports || [] })); setAllFacilities(mapped); setFlyToPosition(userLoc); toast({ title: `Tìm thấy ${mapped.length} địa điểm gần bạn!`, status: 'success' }); } catch (e) { console.error(e); } };
+    const handleDeleteMatch = async (matchId) => { if (!window.confirm("Xóa kèo này?")) return; try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/matches/${matchId}`, { data: { user_id: currentUser.id } }); toast({ title: 'Đã xóa kèo!', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
+    const handleKickUser = async (matchId, userIdToKick) => { if (!window.confirm("Đuổi người này?")) return; try { await axios.delete(`${import.meta.env.VITE_API_URL}/api/matches/${matchId}/kick/${userIdToKick}`, { data: { host_id: currentUser.id } }); toast({ title: 'Đã đuổi!', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
+    const handleLockMatch = async (matchId, currentStatus) => { const newStatus = currentStatus === 'locked' ? 'open' : 'locked'; try { await axios.put(`${import.meta.env.VITE_API_URL}/api/matches/${matchId}/lock`, { user_id: currentUser.id, status: newStatus }); toast({ title: newStatus === 'locked' ? 'Đã khóa kèo' : 'Đã mở kèo', status: 'success' }); loadData(); } catch (e) { toast({ title: 'Lỗi', status: 'error' }); } };
+    const handleJoinMatch = async (matchId) => { const user = JSON.parse(localStorage.getItem('user')); if (!user) { if(window.confirm('Cần đăng nhập. Đi tới đăng nhập?')) navigate('/login'); return; } try { await axios.post(`${import.meta.env.VITE_API_URL}/api/matches/join`, { match_id: matchId, user_id: user.id }); toast({ title: 'Tham gia thành công!', status: 'success' }); loadData(); } catch (error) { toast({ title: 'Lỗi', description: error.response?.data?.message, status: 'error' }); } };
+    const handleSelectWard = async (wardId) => { setSelectedWard(wardId); setSearchRadius(''); if(!wardId) { setWardShape(null); setWardBounds(null); loadData(); return; } try { const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/courts/by-ward/${wardId}`); setAllFacilities(res.data.courts || []); setWardShape(res.data.shape); setWardBounds(res.data.bounds); toast({ title: `Đã lọc: ${res.data.courts.length} địa điểm`, status: 'success' }); } catch (e) { toast({ title: "Lỗi", status: 'error' }); } };
+    const handleFindNearby = async () => { if(!userLoc) return toast({ title: "Vui lòng bật GPS!", status: 'warning' }); setSelectedWard(''); setWardShape(null); setWardBounds(null); try { const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/courts/nearby`, { params: { lat: userLoc[0], lng: userLoc[1], distance: searchRadius * 1000 } }); const mapped = res.data.map(c => ({ ...c, lat: c.geometry?.coordinates[1] || c.lat, lng: c.geometry?.coordinates[0] || c.lng, sports: c.sports || [] })); setAllFacilities(mapped); setFlyToPosition(userLoc); toast({ title: `Tìm thấy ${mapped.length} địa điểm gần bạn!`, status: 'success' }); } catch (e) { console.error(e); } };
     
     const handleDrawRoute = async (target, mode = null) => { 
         const selectedMode = mode || travelMode; 
@@ -334,7 +334,7 @@ export default function UserPage() {
         onDetailOpen(); 
 
         try {
-            await axios.post(`http://localhost:5000/api/facilities/${fac.id}/view`);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/facilities/${fac.id}/view`);
             setAllFacilities(prev => prev.map(f => f.id === fac.id ? { ...f, view_count: (f.view_count || 0) + 1 } : f));
         } catch (error) {}
     };

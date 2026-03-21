@@ -15,9 +15,9 @@ const formatCurrency = (amount) => {
 
 const getImgUrl = (url) => { 
     if (!url) return '';
-    if (url.startsWith('http')) return url; 
+    if (url.startsWith('https//')) return url; 
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, ''); 
-    return `http://localhost:5000/${cleanPath}`; 
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`; 
 };
 
 const MyTickets = ({ isOpen, onClose }) => {
@@ -44,8 +44,8 @@ const MyTickets = ({ isOpen, onClose }) => {
             setLoading(true); 
             try {
                 const [ticketsRes, configRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/bookings/my-tickets?user_id=${user.id}`),
-                    axios.get('http://localhost:5000/api/config')
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/my-tickets?user_id=${user.id}`),
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/config`)
                 ]);
                 setTickets(ticketsRes.data);
                 setConfig(configRes.data || {});
@@ -64,8 +64,8 @@ const MyTickets = ({ isOpen, onClose }) => {
         if(!window.confirm(`Bạn chắc chắn muốn ${msg}?`)) return; 
         
         try { 
-            if(action === 'delete') await axios.delete(`http://localhost:5000/api/bookings/${id}`); 
-            else await axios.put(`http://localhost:5000/api/bookings/${id}/cancel`); 
+            if(action === 'delete') await axios.delete(`${import.meta.env.VITE_API_URL}/api/bookings/${id}`); 
+            else await axios.put(`${import.meta.env.VITE_API_URL}/api/bookings/${id}/cancel`); 
             
             toast({title: 'Thành công', status: 'success'}); 
             fetchTickets(); 
@@ -78,7 +78,7 @@ const MyTickets = ({ isOpen, onClose }) => {
         if(!window.confirm('Hành động này sẽ xóa toàn bộ lịch sử đặt vé. Tiếp tục?')) return; 
         const user = JSON.parse(localStorage.getItem('user')); 
         try {
-            await axios.delete(`http://localhost:5000/api/bookings/clear-history/${user.id}`); 
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/bookings/clear-history/${user.id}`); 
             setTickets([]); 
             toast({title: 'Đã xóa sạch lịch sử', status: 'success'}); 
         } catch(e) {
@@ -88,7 +88,7 @@ const MyTickets = ({ isOpen, onClose }) => {
 
     const handleDownloadTicketImage = async (bookingId) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/bookings/ticket/${bookingId}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/ticket/${bookingId}`);
             setDownloadingTicket({ ...res.data, ticket_code: tickets.find(t => t.id === bookingId)?.ticket_code });
             toast({ title: "Đang tạo ảnh vé...", status: "info", duration: 1500 });
 

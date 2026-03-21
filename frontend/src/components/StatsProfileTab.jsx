@@ -45,7 +45,7 @@ const StatsProfileTab = ({ stats, user, setUser, isMobile }) => {
 
     const handleUpdate = async () => { 
         try { 
-            await axios.put(`http://localhost:5000/api/users/${user.id}/profile`, profileData); 
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}/profile`, profileData); 
             const updatedUser = { ...user, ...profileData };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser); 
@@ -57,8 +57,8 @@ const StatsProfileTab = ({ stats, user, setUser, isMobile }) => {
         const file = e.target.files[0]; if(!file) return; 
         setUploading(true); const fd = new FormData(); fd.append('image', file);
         try { 
-            const res = await axios.post('http://localhost:5000/api/upload', fd); 
-            await axios.put(`http://localhost:5000/api/users/${user.id}/avatar`, { avatar_url: res.data.url }); 
+            const res = await axios.post(import.meta.env.VITE_API_URL + '/api/upload', fd); 
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}/avatar`, { avatar_url: res.data.url }); 
             const updatedUser = { ...user, avatar: res.data.url, avatar_url: res.data.url };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser); 

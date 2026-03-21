@@ -35,7 +35,7 @@ const FacilityForm = ({ formData, setFormData, handleImageUpload, handleSubmit, 
     };
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/locations/wards')
+        axios.get(import.meta.env.VITE_API_URL + '/api/locations/wards')
             .then(res => setWards(res.data))
             .catch(e => console.error(e));
     }, []);
@@ -46,7 +46,7 @@ const FacilityForm = ({ formData, setFormData, handleImageUpload, handleSubmit, 
     const getImgUrl = (url) => {
         if (!url) return '';
         if (url.startsWith('http')) return url;
-        return `http://localhost:5000/${url.startsWith('/') ? url.substring(1) : url}`;
+        return `${import.meta.env.VITE_API_URL}/${url.startsWith('/') ? url.substring(1) : url}`;
     };
 
     const handleRemoveImage = () => {

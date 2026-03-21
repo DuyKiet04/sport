@@ -13,7 +13,7 @@ const getImgUrl = (url) => {
     if (url.includes('base64')) return url;
     if (url.startsWith('http')) return url;
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, '');
-    return `http://localhost:5000/${cleanPath}`;
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`;
 };
 
 export default function ReviewTab({ vendorId }) {
@@ -62,7 +62,7 @@ export default function ReviewTab({ vendorId }) {
     const fetchReviews = async () => {
         if (!vendorId) return;
         try {
-            const res = await axios.get(`http://localhost:5000/api/vendor/reviews?vendor_id=${vendorId}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/vendor/reviews?vendor_id=${vendorId}`);
             setReviews(res.data);
         } catch (e) { console.error(e); }
     };
@@ -78,7 +78,7 @@ export default function ReviewTab({ vendorId }) {
     const submitReport = async () => {
         if (!reportReason.trim()) return toast({ title: "Lý do là gì bác?", status: "warning" });
         try {
-            await axios.post(`http://localhost:5000/api/vendor/reviews/${selectedReview.id}/report`, { reason: reportReason });
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/vendor/reviews/${selectedReview.id}/report`, { reason: reportReason });
             toast({ title: "Đã gửi báo cáo!", status: "success" });
             fetchReviews(); onClose();
         } catch (e) { toast({ title: "Lỗi hệ thống", status: "error" }); }

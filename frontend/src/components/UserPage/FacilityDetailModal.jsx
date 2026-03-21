@@ -19,7 +19,7 @@ const OPEN_WEATHER_API_KEY = import.meta.env.VITE_OPEN_WEATHER_API_KEY;
 const getImgUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:5000/${url.startsWith('/') ? url.substring(1) : url}`;
+    return `${import.meta.env.VITE_API_URL}/${url.startsWith('/') ? url.substring(1) : url}`;
 };
 
 const StarRating = ({ rating, setRating, isInteractive = false, size = 4 }) => (
@@ -71,7 +71,7 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
 
     const fetchReviews = async () => {
         try {
-            const reviewRes = await axios.get(`http://localhost:5000/api/reviews/facility/${facility.id}`);
+            const reviewRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/reviews/facility/${facility.id}`);
             setReviews(reviewRes.data);
         } catch (e) { }
     };
@@ -82,8 +82,8 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
             const fetchData = async () => {
                 try {
                     const [courtsRes, typesRes] = await Promise.all([
-                        axios.get(`http://localhost:5000/api/facilities/${facility.id}/courts-detail`),
-                        axios.get(`http://localhost:5000/api/sport-types`)
+                        axios.get(`${import.meta.env.VITE_API_URL}/api/facilities/${facility.id}/courts-detail`),
+                        axios.get(`${import.meta.env.VITE_API_URL}/api/sport-types`)
                     ]);
                     const validCourts = (courtsRes.data || []).filter(c => !c.name.startsWith('[Ảo]'));
                     setCourts(validCourts);
@@ -92,7 +92,7 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
                     
                     if (currentUser) {
                         try {
-                            const favRes = await axios.get(`http://localhost:5000/api/favorites/${currentUser.id}`);
+                            const favRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/favorites/${currentUser.id}`);
                             setIsFavorite(favRes.data.includes(facility.id));
                         } catch (e) { }
                     }
@@ -113,7 +113,7 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
 
     const handleContactClick = () => {
         if (!facility) return;
-        try { axios.post(`http://localhost:5000/api/facilities/${facility.id}/contact`); } 
+        try { axios.post(`${import.meta.env.VITE_API_URL}/api/facilities/${facility.id}/contact`); } 
         catch (e) { console.log(e); }
     };
 
@@ -145,10 +145,10 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
 
         try {
             if (editReviewId) {
-                await axios.put(`http://localhost:5000/api/reviews/${editReviewId}`, formData);
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/reviews/${editReviewId}`, formData);
                 toast({ title: "Đã cập nhật đánh giá!", status: "success" });
             } else {
-                await axios.post('http://localhost:5000/api/reviews', formData);
+                await axios.post(import.meta.env.VITE_API_URL + '/api/reviews', formData);
                 toast({ title: "Đánh giá thành công!", status: "success" });
             }
             clearReviewForm();
@@ -166,7 +166,7 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
     const handleDeleteReview = async (reviewId) => {
         if(!window.confirm("Bạn chắc chắn muốn xóa bình luận này?")) return;
         try {
-            await axios.delete(`http://localhost:5000/api/reviews/${reviewId}`, { data: { facility_id: facility.id, user_id: currentUser.id } });
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, { data: { facility_id: facility.id, user_id: currentUser.id } });
             toast({ title: "Đã xóa đánh giá!", status: "success" });
             await fetchReviews();
         } catch (error) { toast({ title: "Lỗi xóa đánh giá", status: "error" }); }
@@ -176,7 +176,7 @@ const FacilityDetailModal = ({ isOpen, onClose, facility, onBookCourt, onDrawRou
         e.stopPropagation();
         if (!currentUser) return toast({ title: "Vui lòng đăng nhập!", status: "warning" });
         try {
-            await axios.post('http://localhost:5000/api/favorites', { user_id: currentUser.id, facility_id: facility.id });
+            await axios.post(import.meta.env.VITE_API_URL + '/api/favorites', { user_id: currentUser.id, facility_id: facility.id });
             setIsFavorite(!isFavorite);
             toast({ title: !isFavorite ? "Đã lưu sân ưa thích" : "Đã bỏ lưu", status: "success" });
         } catch (error) { toast({ title: "Lỗi kết nối", status: "error" }); }

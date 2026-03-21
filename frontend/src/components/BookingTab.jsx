@@ -51,7 +51,7 @@ const BookingTab = ({ bookings, user, fetchData, isMobile, searchTerm }) => {
     const handleDelete = async (id) => { 
         if(window.confirm("Xóa vé này vĩnh viễn khỏi hệ thống?")) { 
             try { 
-                await axios.delete(`http://localhost:5000/api/vendor/bookings/${id}`, { data: { owner_id: user.id } }); 
+                await axios.delete(`${import.meta.env.VITE_API_URL}/api/vendor/bookings/${id}`, { data: { owner_id: user.id } }); 
                 fetchData(); 
                 toast({title:"Đã xóa vé", status:"success"});
             } catch { toast({title:"Lỗi khi xóa", status:"error"}); } 
@@ -60,7 +60,7 @@ const BookingTab = ({ bookings, user, fetchData, isMobile, searchTerm }) => {
     
     const handleAction = async (id, action) => { 
         try { 
-            await axios.put(`http://localhost:5000/api/bookings/${id}/${action}`); 
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/bookings/${id}/${action}`); 
             fetchData(); 
             toast({title: action === 'checkin' ? "Đã Check-in!" : "Đã hủy vé!", status:"success"});
         } catch { toast({title:"Lỗi xử lý", status:"error"}); } 

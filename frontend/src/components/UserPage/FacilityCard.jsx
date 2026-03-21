@@ -9,7 +9,7 @@ const getImgUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
     const cleanPath = url.startsWith('/') ? url.substring(1) : url;
-    return `http://localhost:5000/${cleanPath}`;
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`;
 };
 
 const FacilityCard = ({ facility, onClick, distance }) => {

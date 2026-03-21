@@ -12,7 +12,7 @@ const getImgUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url; 
     const cleanPath = url.replace(/\\/g, '/').replace(/^\/+/, ''); 
-    return `http://localhost:5000/${cleanPath}`; 
+    return `${import.meta.env.VITE_API_URL}/${cleanPath}`; 
 };
 
 const NotificationBell = () => {
@@ -46,8 +46,8 @@ const NotificationBell = () => {
         setLoading(true);
         try {
             const [notiRes, configRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/notifications/${user.id}?limit=${limit}&offset=${currentOffset}`),
-                axios.get('http://localhost:5000/api/config')
+                axios.get(`${import.meta.env.VITE_API_URL}/api/notifications/${user.id}?limit=${limit}&offset=${currentOffset}`),
+                axios.get(import.meta.env.VITE_API_URL + '/api/config')
             ]);
 
             setConfig(configRes.data || {});
@@ -85,7 +85,7 @@ const NotificationBell = () => {
     const handleOpen = () => {
         if (unread > 0) {
             setUnread(0);
-            axios.put(`http://localhost:5000/api/notifications/${user.id}/read`);
+            axios.put(`${import.meta.env.VITE_API_URL}/api/notifications/${user.id}/read`);
         }
     };
 
@@ -96,14 +96,14 @@ const NotificationBell = () => {
     const handleDeleteOne = async (id, e) => {
         e.stopPropagation();
         try {
-            await axios.delete(`http://localhost:5000/api/notifications/item/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/notifications/item/${id}`);
             setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) { toast({ status: "error", title: "Lỗi xóa" }); }
     };
 
     const handleClearAll = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/notifications/all/${user.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/notifications/all/${user.id}`);
             setNotifications([]);
             setUnread(0);
             toast({ status: "success", title: "Đã dọn dẹp sạch sẽ!" });
@@ -112,7 +112,7 @@ const NotificationBell = () => {
 
     const handleDownloadTicketImage = async (bookingId) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/bookings/ticket/${bookingId}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/ticket/${bookingId}`);
             setDownloadingTicket(res.data);
             toast({ title: "Đang tạo ảnh vé...", status: "info", duration: 1500 });
 
