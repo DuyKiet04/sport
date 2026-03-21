@@ -29,8 +29,8 @@ const HeatmapLayer = ({ points }) => {
         // 3. Thêm vào bản đồ
         heat.addTo(map);
 
-        // 4. 🔥 QUAN TRỌNG: Hàm dọn dẹp (Cleanup Function)
-        // Hàm này sẽ chạy khi component bị unmount (khi bạn bỏ tích trong LayersControl)
+        //  QUAN TRỌNG: hàm dọn dẹp
+    
         return () => {
             map.removeLayer(heat);
         };

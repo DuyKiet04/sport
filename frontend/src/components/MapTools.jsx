@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
 import axios from 'axios';
 import L from 'leaflet';
-import { Box, InputGroup, Input, InputRightElement, IconButton, useToast } from '@chakra-ui/react';
+import { Box, InputGroup, Input, InputRightElement, IconButton, useToast, useColorModeValue } from '@chakra-ui/react';
 import { FaSearch } from 'react-icons/fa';
 
 // --- HELPER: XỬ LÝ LINK ẢNH ---
@@ -44,9 +44,6 @@ export const LocationPicker = ({ setFormData }) => {
             try {
                 const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                 if (res.data && res.data.display_name) {
-                    // Chỉ cập nhật địa chỉ nếu user chưa tự nhập gì (tùy chọn)
-                    // Hoặc update luôn để họ biết vị trí đó là gì
-                    // setFormData(prev => ({ ...prev, address: res.data.display_name }));
                     
                     toast({ 
                         title: 'Đã ghim vị trí!', 
@@ -61,108 +58,42 @@ export const LocationPicker = ({ setFormData }) => {
 };
 
 // --- COMPONENT: THANH TÌM KIẾM ĐỊA CHỈ THÔNG MINH ---
-export const MapSearchControl = ({ setFormData }) => {
+// --- COMPONENT: THANH TÌM KIẾM ĐỊA CHỈ (HEADLESS - CHẠY NGẦM) ---
+export const MapSearchControl = ({ setFormData, query, triggerSearch }) => {
     const map = useMap();
-    const [query, setQuery] = useState('');
-    const [searching, setSearching] = useState(false);
     const toast = useToast();
-    const containerRef = useRef(null);
 
     useEffect(() => {
-        if (containerRef.current) {
-            L.DomEvent.disableClickPropagation(containerRef.current);
-            L.DomEvent.disableScrollPropagation(containerRef.current);
-        }
-    }, []);
+        if (!triggerSearch || !query) return;
 
-    const handleSearch = async () => {
-        if (!query) return;
-        setSearching(true);
+        const handleSearch = async () => {
+            const searchApi = async (q) => axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&countrycodes=vn`);
+            try {
+                let res = await searchApi(query);
+                let foundQuery = query;
 
-        // Hàm search nội bộ
-        const searchApi = async (q) => {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&countrycodes=vn`;
-            return await axios.get(url);
+                if (res.data.length === 0) {
+                    const streetMatch = query.match(/(Đường|Phố|Quốc lộ|Tỉnh lộ|Xa lộ|Đại lộ|Khu phố|Phường|Xã|Thị trấn).*$/i);
+                    if (streetMatch) { res = await searchApi(streetMatch[0]); foundQuery = streetMatch[0]; }
+                }
+                if (res.data.length === 0) {
+                    const wardMatch = query.match(/(Phường|Xã|Thị trấn).*$/i);
+                    if (wardMatch) { res = await searchApi(wardMatch[0]); foundQuery = wardMatch[0]; }
+                }
+
+                if (res.data && res.data.length > 0) {
+                    const { lat, lon } = res.data[0];
+                    map.flyTo([parseFloat(lat), parseFloat(lon)], 16); 
+                    setFormData(prev => ({ ...prev, lat: parseFloat(lat), lng: parseFloat(lon) }));
+                    toast({ title: foundQuery === query ? 'Đã tìm thấy!' : 'Tìm thấy lân cận', description: "Kéo thả bản đồ để ghim chính xác.", status: 'success', position: 'top', duration: 3000 });
+                } else {
+                    toast({ title: 'Không tìm thấy', description: "Bản đồ chưa cập nhật, thử từ khóa khác.", status: 'warning', position: 'top', duration: 3000 });
+                }
+            } catch (e) { toast({ title: 'Lỗi bản đồ', status: 'error' }); }
         };
+        handleSearch();
+    }, [triggerSearch]); // Chỉ chạy khi AdminPage bấm nút Enter/Search
 
-        try {
-            // 1. Thử tìm chính xác 100%
-            let res = await searchApi(query);
-            let foundQuery = query;
-
-            // 2. Nếu không thấy -> Thử cắt bỏ số nhà (Tìm theo tên đường)
-            if (res.data.length === 0) {
-                // Regex tìm từ khóa đường/phường...
-                // Ví dụ: "1078/20 Đường số 18..." -> Lấy từ "Đường số 18..."
-                const streetMatch = query.match(/(Đường|Phố|Quốc lộ|Tỉnh lộ|Xa lộ|Đại lộ|Khu phố|Phường|Xã|Thị trấn).*$/i);
-                
-                if (streetMatch) {
-                    const broaderQuery = streetMatch[0]; // Lấy phần tên đường trở về sau
-                    // toast({ title: 'Đang mở rộng tìm kiếm...', description: `Tìm: "${broaderQuery}"`, status: 'info', position: 'top', duration: 1500 });
-                    res = await searchApi(broaderQuery);
-                    foundQuery = broaderQuery;
-                }
-            }
-
-            // 3. Nếu vẫn không thấy -> Thử tìm theo Phường + Quận (Cắt bớt nữa)
-            if (res.data.length === 0) {
-                const wardMatch = query.match(/(Phường|Xã|Thị trấn).*$/i);
-                if (wardMatch) {
-                    res = await searchApi(wardMatch[0]);
-                    foundQuery = wardMatch[0];
-                }
-            }
-
-            if (res.data && res.data.length > 0) {
-                const { lat, lon, display_name } = res.data[0];
-                const latNum = parseFloat(lat);
-                const lngNum = parseFloat(lon);
-
-                map.flyTo([latNum, lngNum], 16); 
-                
-                // Cập nhật marker, NHƯNG KHÔNG GHI ĐÈ ĐỊA CHỈ GỐC CỦA USER
-                // Để user tự sửa địa chỉ chi tiết, chỉ lấy tọa độ thôi
-                setFormData(prev => ({ 
-                    ...prev, 
-                    lat: latNum, 
-                    lng: lngNum,
-                    // address: display_name // 👈 Tạm tắt dòng này để ko bị ghi đè địa chỉ "1078/20..." mà user đã nhập
-                }));
-                
-                toast({ 
-                    title: foundQuery === query ? 'Đã tìm thấy!' : 'Tìm thấy khu vực lân cận', 
-                    description: "Hãy kéo thả bản đồ hoặc chạm để ghim đúng vị trí sân nhà bạn.", 
-                    status: 'success', position: 'top', duration: 5000, isClosable: true
-                });
-            } else {
-                toast({ 
-                    title: 'Không tìm thấy', 
-                    description: "Bản đồ chưa cập nhật số nhà này. Hãy thử tìm địa điểm lớn gần đó (VD: Chợ, Trường học, Ủy ban...).", 
-                    status: 'warning', position: 'top', duration: 5000, isClosable: true 
-                });
-            }
-        } catch (e) { 
-            toast({ title: 'Lỗi kết nối bản đồ', status: 'error' }); 
-        } finally { 
-            setSearching(false); 
-        }
-    };
-
-    return (
-        <Box ref={containerRef} position="absolute" top={4} left="50%" transform="translateX(-50%)" zIndex={1000} w="90%" maxW="400px" bg="white" borderRadius="full" p={1} boxShadow="0 4px 12px rgba(0,0,0,0.15)">
-            <InputGroup size="md">
-                <Input 
-                    placeholder="Tìm địa chỉ (VD: Đường số 18, Linh Trung)..." 
-                    borderRadius="full" border="none" 
-                    value={query} 
-                    onChange={(e) => setQuery(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()} 
-                    pl={4} _focus={{boxShadow: 'none'}}
-                />
-                <InputRightElement width="3rem">
-                    <IconButton icon={<FaSearch />} size="sm" isRound colorScheme="blue" onClick={handleSearch} isLoading={searching} />
-                </InputRightElement>
-            </InputGroup>
-        </Box>
-    );
+    return null; // 👈 Quan trọng: Trả về null vì Header đã lo giao diện
 };
+

@@ -1,22 +1,30 @@
 import React from 'react';
-import { Card, Flex, Box, Image, Badge, VStack, Text, Wrap, Tag, HStack, Button, useColorModeValue, Icon } from '@chakra-ui/react';
-import { FaLocationArrow, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
+import { 
+    Card, Flex, Box, Image, Badge, VStack, Text, Wrap, Tag, 
+    HStack, Button, useColorModeValue, Icon, Spacer 
+} from '@chakra-ui/react';
+import { FaLocationArrow, FaStar, FaMapMarkerAlt, FaClock, FaChevronRight } from 'react-icons/fa';
 
 const getImgUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    // Đảm bảo không bị double slash
     const cleanPath = url.startsWith('/') ? url.substring(1) : url;
     return `http://localhost:5000/${cleanPath}`;
 };
 
 const FacilityCard = ({ facility, onClick, distance }) => {
-    const bg = useColorModeValue('white', 'gray.800');
-    const borderColor = useColorModeValue('gray.100', 'gray.700');
+    // 🎨 MÀU SẮC NEUMORPHISM ĐỒNG BỘ DARK MODE
+    const neumorphBg = useColorModeValue('#edf2f7', '#2d3748');
+    const neumorphShadow = useColorModeValue('6px 6px 12px #b8bec5, -6px -6px 12px #ffffff', '4px 4px 10px #1a202c, -4px -4px 10px #4a5568');
+    const neumorphActiveShadow = useColorModeValue('inset 4px 4px 8px #b8bec5, inset -4px -4px 8px #ffffff', 'inset 4px 4px 8px #1a202c, inset -4px -4px 8px #4a5568');
     
-    // Status Logic
+    const textColor = useColorModeValue('gray.700', 'gray.100');
+    const textMuted = useColorModeValue('gray.500', 'gray.400');
+    const accentColor = useColorModeValue('blue.500', 'blue.300');
+
+    // Giữ nguyên logic status
     const getStatus = () => {
-        if(!facility.open_time || !facility.close_time) return {text:'Unknown', color:'gray'};
+        if(!facility.open_time || !facility.close_time) return {text:'Unknown', color:'gray', icon: FaClock};
         const now = new Date();
         const cur = now.getHours()*60 + now.getMinutes();
         const [oH,oM] = facility.open_time.split(':').map(Number);
@@ -24,62 +32,154 @@ const FacilityCard = ({ facility, onClick, distance }) => {
         let start = oH*60+oM; let end = cH*60+cM;
         if(end < start) end += 24*60;
         let check = cur; if(cur < start && end > 24*60) check += 24*60;
-        if(check < start || check > end) return {text:'Đóng cửa', color:'red'};
-        return {text:'Mở cửa', color:'green'};
+        
+        if(check < start || check > end) return {text:'Đóng cửa', color:'red', icon: FaClock};
+        return {text:'Đang mở', color:'green', icon: FaClock};
     };
     const st = getStatus();
 
+    const rating = facility.avg_rating || "5.0"; 
+    const reviewCount = facility.review_count || 0;
+
     return (
-        // 🔥 FIX CSS: h="auto" và minH để nó tự giãn nếu tên dài
-        <Card onClick={onClick} cursor="pointer" variant="outline" borderColor={borderColor} shadow="sm" _hover={{ shadow: 'md', borderColor: 'blue.300' }} bg={bg} w="100%" borderRadius="xl" mb={3} overflow="hidden">
-            <Flex direction="row" minH="120px">
-                {/* Cột ảnh bên trái */}
-                <Box w="120px" minW="120px" position="relative" bg="gray.100">
+        <Box
+            onClick={onClick} 
+            cursor="pointer" 
+            bg={neumorphBg} 
+            w="100%" 
+            borderRadius="2xl" 
+            p={2}
+            boxShadow={neumorphShadow}
+            mb={5} 
+            overflow="hidden"
+            transition="all 0.3s ease"
+            _active={{ transform: 'scale(0.98)', boxShadow: neumorphActiveShadow }}
+        >
+            <Flex direction="row" minH="130px">
+                
+                {/* 1. CỘT ẢNH (Dập chìm) */}
+                <Box 
+                    w="120px" minW="120px" h="120px"
+                    position="relative" 
+                    borderRadius="xl" 
+                    overflow="hidden"
+                    m={1}
+                    boxShadow={neumorphActiveShadow}
+                    border="3px solid"
+                    borderColor={neumorphBg}
+                >
                     <Image 
-                        src={getImgUrl(facility.image_url)} w="100%" h="100%" objectFit="cover" 
-                        onError={(e)=>{e.target.onerror=null; e.target.src='https://placehold.co/120x130?text=San';}}
+                        src={getImgUrl(facility.image_url)} 
+                        w="100%" h="100%" 
+                        objectFit="cover" 
+                        fallbackSrc="https://placehold.co/120x120?text=SanBong"
                     />
-                    <Badge position="absolute" top={1} left={1} bg="rgba(0,0,0,0.7)" color="white" fontSize="9px">{facility.total_courts} Sân</Badge>
+                    
+                    {/* Badge lượt sân nổi lên nhẹ */}
+                    <Box 
+                        position="absolute" top={1} left={1} 
+                        bg={neumorphBg} color="blue.500" 
+                        fontSize="9px" fontWeight="900" px={2} py={0.5} 
+                        borderRadius="md" shadow="md"
+                    >
+                        {facility.total_courts} SÂN
+                    </Box>
                     
                     {distance && (
-                        <Badge position="absolute" bottom={1} right={1} colorScheme="orange" fontSize="9px" display="flex" alignItems="center">
-                            <Icon as={FaMapMarkerAlt} mr={1}/> {distance.toFixed(1)} km
-                        </Badge>
+                        <Box 
+                            position="absolute" bottom={1} right={1} 
+                            bg="orange.500" color="white" 
+                            fontSize="9px" fontWeight="900"
+                            display="flex" alignItems="center" px={2} py={0.5} 
+                            borderRadius="full" shadow="md"
+                        >
+                             {parseFloat(distance).toFixed(1)} km
+                        </Box>
                     )}
                 </Box>
                 
-                {/* Cột thông tin bên phải */}
-                <VStack p={2} align="stretch" justify="space-between" flex={1} spacing={1}>
+                {/* 2. CỘT THÔNG TIN */}
+                <VStack p={3} align="stretch" justify="space-between" flex={1} spacing={0}>
+                    
                     <Box>
-                        {/* Tên sân: Cho phép xuống dòng nếu quá dài */}
-                        <Text fontWeight="bold" fontSize="sm" color="blue.600" lineHeight="1.2" noOfLines={2}>
-                            {facility.name}
-                        </Text>
-                        <HStack align="start" mt={1} spacing={1}>
-                            <Icon as={FaLocationArrow} w={3} h={3} color="gray.400" mt={0.5}/>
-                            <Text fontSize="xs" color="gray.500" noOfLines={2} lineHeight="1.2">
+                        <Flex justify="space-between" align="start">
+                            <Text fontWeight="900" fontSize="sm" color={textColor} lineHeight="1.2" noOfLines={1} mb={1} pr={2}>
+                                {facility.name}
+                            </Text>
+                            
+                            {/* Rating Star nổi khối */}
+                            <HStack 
+                                spacing={1} bg={neumorphBg} px={2} py={0.5} 
+                                borderRadius="lg" boxShadow={neumorphShadow}
+                            >
+                                <Icon as={FaStar} color="orange.400" boxSize={2.5} />
+                                <Text fontSize="10px" fontWeight="900" color={textColor}>{rating}</Text>
+                            </HStack>
+                        </Flex>
+
+                        <HStack align="start" spacing={1} mt={1}>
+                            <Icon as={FaMapMarkerAlt} w={2.5} h={2.5} color="red.500" mt="2px"/>
+                            <Text fontSize="10px" color={textMuted} noOfLines={1} fontWeight="bold">
                                 {facility.address}
                             </Text>
                         </HStack>
                     </Box>
                     
-                    <Wrap spacing={1} mt={1} maxH="22px" overflow="hidden">
-                        {facility.sports && facility.sports.map(s => <Tag key={s} size="sm" fontSize="8px" px={1} h="18px" colorScheme="teal">{s}</Tag>)}
+                    {/* Tags môn thể thao */}
+                    <Wrap spacing={2} mt={2} mb={2} maxH="22px" overflow="hidden">
+                        {facility.sports && facility.sports.slice(0, 2).map(s => (
+                            <Box 
+                                key={s} fontSize="9px" px={2.5} py={0.5} 
+                                borderRadius="full" bg={neumorphBg} color={accentColor} 
+                                fontWeight="900" boxShadow={neumorphActiveShadow}
+                                textTransform="uppercase"
+                            >
+                                {s}
+                            </Box>
+                        ))}
                     </Wrap>
 
-                    <Flex justify="space-between" align="end" mt="auto" borderTop="1px solid" borderColor="gray.100" pt={2}>
+                    {/* Footer: Giá + Nút */}
+                    <Flex justify="space-between" align="center" pt={1}>
                         <VStack align="start" spacing={0}>
-                            <Text fontSize="9px" color="gray.500">Giá từ</Text>
-                            <Text fontWeight="800" color="orange.500" fontSize="sm">{parseInt(facility.min_price||0).toLocaleString()}đ</Text>
+                            <Badge 
+                                variant="subtle" 
+                                colorScheme={st.color} 
+                                fontSize="8px" 
+                                borderRadius="full" 
+                                px={2} 
+                                mb={0.5}
+                                border="none"
+                            >
+                                {st.text}
+                            </Badge>
+                            <Text fontWeight="900" color="green.500" fontSize="sm" lineHeight="1">
+                                {parseInt(facility.min_price||0).toLocaleString()}đ
+                            </Text>
                         </VStack>
-                        <HStack>
-                            <Badge colorScheme={st.color} fontSize="9px" variant="solid" borderRadius="full" px={2}>{st.text}</Badge>
-                            <Button size="xs" colorScheme="blue" h="24px" onClick={(e)=>{e.stopPropagation(); onClick();}}>Đặt</Button>
-                        </HStack>
+
+                        <Button 
+                            size="xs" 
+                            h="30px" 
+                            px={4} 
+                            fontSize="10px"
+                            fontWeight="900"
+                            borderRadius="full" 
+                            colorScheme="blue" 
+                            bgGradient="linear(to-r, blue.400, blue.600)"
+                            color="white"
+                            boxShadow="lg"
+                            _hover={{ transform: 'translateY(-2px)', shadow: 'xl' }}
+                            _active={{ transform: 'scale(0.95)' }}
+                            onClick={(e)=>{e.stopPropagation(); onClick();}}
+                            rightIcon={<FaChevronRight size="8px"/>}
+                        >
+                            ĐẶT SÂN
+                        </Button>
                     </Flex>
                 </VStack>
             </Flex>
-        </Card>
+        </Box>
     );
 };
 export default FacilityCard;

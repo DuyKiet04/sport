@@ -16,12 +16,12 @@ const importFolder = async () => {
         const folderPath = path.join(__dirname, 'HCM_PhuongXa_Split'); 
 
         if (!fs.existsSync(folderPath)) {
-            console.error(`❌ Không tìm thấy thư mục: ${folderPath}`);
+            console.error(` 😒Không tìm thấy thư mục: ${folderPath}`);
             return;
         }
 
         const files = fs.readdirSync(folderPath).filter(file => file.endsWith('.geojson') || file.endsWith('.json'));
-        console.log(`🚀 Đang xử lý ${files.length} đơn vị hành chính mới của TP.HCM...`);
+        console.log(` 😘 Đang xử lý ${files.length} đơn vị hành chính mới của TP.HCM...`);
 
         // Xóa sạch dữ liệu cũ để nạp mới cho chuẩn
         await pool.query("TRUNCATE TABLE administrative_units RESTART IDENTITY");
@@ -54,15 +54,15 @@ const importFolder = async () => {
                     );
                     process.stdout.write("."); 
                 } catch (e) {
-                    console.error(`\n❌ Lỗi: ${name} - ${e.message}`);
+                    console.error(`\n👌 Lỗi: ${name} - ${e.message}`);
                 }
             }
         }
 
-        console.log("\n✅ ĐÃ XONG! 168 đơn vị hành chính (Phường/Xã/Đặc khu) đã vào DB.");
+        console.log("\n👌 ĐÃ XONG! 168 đơn vị hành chính  đã vào DB.");
 
     } catch (err) {
-        console.error("\n❌ LỖI:", err.message);
+        console.error("\n😒LỖI:", err.message);
     } finally {
         pool.end();
     }
