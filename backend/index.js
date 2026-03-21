@@ -3,7 +3,9 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // --- 1. CONFIG UPLOAD IMAGE (CLOUDINARY) ---
 const cloudinary = require('cloudinary').v2;
@@ -53,21 +55,41 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads')); 
 
+console.log("--- DEBUG DATABASE CONFIG ---");
+console.log("DB_USER:", process.env.DB_USER);
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_PORT:", process.env.DB_PORT);
+console.log("DB_NAME:", process.env.DB_NAME);
+console.log("PASS_LENGTH:", process.env.DB_PASSWORD ? process.env.DB_PASSWORD.length : 0);
+console.log("-----------------------------");
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  max: 1,
-  port: process.env.DB_PORT,
+  user: process.env.DB_USER?.trim(),
+  host: process.env.DB_HOST?.trim(),
+  database: process.env.DB_NAME?.trim(),
+  password: process.env.DB_PASSWORD?.trim(),
+  port: parseInt(process.env.DB_PORT || '6543'),
+  max: 1, 
+  // Tăng lên 15 giây vì mạng từ máy bác sang Singapore (AWS) có thể hơi chậm lúc đầu
+  connectionTimeoutMillis: 15000, 
+  idleTimeoutMillis: 30000,
   ssl: {
-        rejectUnauthorized: false
-    }
+    rejectUnauthorized: false // Bắt buộc phải có
+  }
 });
 
-pool.connect()
-    .then(() => console.log('✅ Connected to PostgreSQL successfully!'))
-    .catch(err => console.error('❌ DB Connection Error:', err.message));
+// Hàm kiểm tra kết nối có Log chi tiết hơn
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('❌ Lỗi kết nối chi tiết:', err.code, '-', err.message);
+    if (err.code === 'ETIMEDOUT') {
+        console.log('👉 Lời khuyên: Mạng của bác đang chặn cổng 6543 hoặc mạng quá chậm.');
+    }
+    return;
+  }
+  console.log('✅ KẾT NỐI SUPABASE THÀNH CÔNG RỰC RỠ!');
+  release();
+});
+
 
 
 const formatTime = (timeInput) => {
@@ -3294,8 +3316,16 @@ app.put('/api/admin/reviews/:id/dismiss-report', async (req, res) => {
         client.release();
     }
 });
+// Route kiểm tra server sống hay chết
+app.get('/', (req, res) => {
+    res.send('🚀 SERVER ĐANG CHẠY NGON LÀNH - DATA ĐÃ THÔNG!');
+});
 // --- START SERVER ---
 app.listen(port,() => {
     console.log(`🫡 Server running on port ${port}`);
+   
 });
+
+
+
 module.exports = app;
