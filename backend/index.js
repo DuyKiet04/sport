@@ -1372,8 +1372,13 @@ app.put('/api/admin/facilities/:id', upload.array('facility_images'), async (req
 });
 
 app.get('/api/sport-types', async (req, res) => {
-    const result = await pool.query("SELECT * FROM sport_types");
-    res.json(result.rows);
+    try {
+        const result = await pool.query("SELECT * FROM sport_types");
+        res.json(result.rows);
+    } catch (err) {
+        // Bắt lỗi và in ra màn hình
+        res.status(500).json({ error: "Lỗi khi lấy sport-types", detail: err.message });
+    }
 });
 
 app.post('/api/sport-types', upload.single('icon'), async (req, res) => {
@@ -3313,6 +3318,24 @@ app.listen(port,() => {
    
 });
 
-
+// 🔥 API KHÁM BỆNH DATABASE
+app.get('/api/test-db', async (req, res) => {
+    try {
+        // Test nhẹ 1 câu lệnh mặc định của PostgreSQL xem có kết nối được không
+        const result = await pool.query("SELECT NOW()");
+        res.json({ 
+            success: true, 
+            message: "KẾT NỐI DATABASE THÀNH CÔNG RỰC RỠ!", 
+            time: result.rows[0] 
+        });
+    } catch (error) {
+        // Nếu lỗi, in thẳng cái lỗi đó ra màn hình
+        res.status(500).json({ 
+            success: false, 
+            loi_cu_the: error.message, 
+            ma_loi: error.code 
+        });
+    }
+});
 
 module.exports = app;
